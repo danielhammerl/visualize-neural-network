@@ -8,15 +8,23 @@
     "lint": "eslint src/"
   },
   "dependencies": {
-    "react": "^17.0.2",
-    "react-dom": "^17.0.2",
-    "regenerator-runtime": "^0.13.9"
+    "@emotion/react": "^11.11.0",
+    "@emotion/styled": "^11.11.0",
+    "@mui/material": "^5.12.3",
+    "@react-hook/resize-observer": "^1.2.6",
+    "konva": "^9.0.1",
+    "lodash": "^4.17.21",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "react-hook-form": "^7.43.9",
+    "react-konva": "^18.2.8",
+    "regenerator-runtime": "^0.13.11"
   },
   "devDependencies": {
-    "@danielhammerl/eslint-config": "^0.0.20",
-    "@types/react": "^17.0.37",
-    "@types/react-dom": "^17.0.11",
-    "prettier": "^2.5.1",
-    "typescript": "^4.5.4"
+    "@types/lodash": "^4.14.194",
+    "@types/react": "^18.2.6",
+    "@types/react-dom": "^18.2.4",
+    "prettier": "^2.8.8",
+    "typescript": "^5.0.4"
   }
 }

@@ -1,0 +1,9 @@
+.settings-section {
+  .form {
+    &>* {
+      &:not(:last-child) {
+        margin-bottom: 1rem;
+      }
+    }
+  }
+}

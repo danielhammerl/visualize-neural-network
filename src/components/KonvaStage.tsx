@@ -1,19 +1,21 @@
-import React, { useLayoutEffect, useRef, useState } from 'react';
-import { Layer, Stage, Line } from 'react-konva';
+import React, { useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { Layer, Stage } from 'react-konva';
 import { useFormContext } from 'react-hook-form';
 import { Settings } from '../types/Settings';
 import * as _ from 'lodash';
 import useResizeObserver from '@react-hook/resize-observer';
-import { Neuron } from './Konva/Neuron';
+import { Neuron, NeuronProps } from './Konva/Neuron';
 import Konva from 'konva';
 import {
   calculateXPosOfHiddenNeuron,
   calculateYPosOfHiddenNeuron,
   calculateYPosOfInputNeuron,
   calculateYPosOfOutputNeuron,
+  nonNullable,
 } from '../utils';
 import { CANVAS_VIRTUAL_HEIGHT, CANVAS_VIRTUAL_WIDTH, INPUT_NODE_X_POS, OUTPUT_NODE_X_POS } from '../constants';
 import { NeuronType } from '../types/Neuron';
+import { NeuronConnection, NeuronConnectionProps } from './Konva/NeuronConnection';
 
 const func = _.throttle((set, ref) => set(ref?.current?.getBoundingClientRect()), 500);
 export function KonvaStageWrapper() {
@@ -63,7 +65,7 @@ function KonvaStage({ boundaries }: { boundaries: DOMRect | undefined }) {
     };*/
   });
 
-  const allNodes: Array<Array<{ xPos: number; yPos: number; type: NeuronType }>> = [
+  const allNodes: Array<Array<NeuronProps>> = [
     _.times(formData.numberOfInputNodes, (index) => ({
       xPos: INPUT_NODE_X_POS,
       yPos: calculateYPosOfInputNeuron(index, formData.numberOfInputNodes),
@@ -92,35 +94,60 @@ function KonvaStage({ boundaries }: { boundaries: DOMRect | undefined }) {
         height={CANVAS_VIRTUAL_HEIGHT * scale}
       >
         <Layer>
-          {allNodes.map((layer) =>
-            layer.map((node) => <Neuron xPos={node.xPos} yPos={node.yPos} type={node.type} radius={20} />),
-          )}
           <ConnectionLines allNodes={allNodes} />
+          {allNodes.map((layer, layerIndex) =>
+            layer.map((node, nodeIndex) => (
+              <Neuron key={`${layerIndex}-${nodeIndex}`} xPos={node.xPos} yPos={node.yPos} type={node.type} />
+            )),
+          )}
         </Layer>
       </Stage>
     </div>
   );
 }
 
-function ConnectionLines({
-  allNodes,
-}: {
-  allNodes: Array<Array<{ xPos: number; yPos: number; type: NeuronType }>>;
-}): React.JSX.Element {
+const calculateConnectionLines = (allNodes: Array<Array<NeuronProps>>) => {
+  return allNodes.map((layer, layerIndex) =>
+    layer
+      .map((node, nodeIndex) => {
+        if (layerIndex === allNodes.length - 1) {
+          return;
+        }
+        return allNodes[layerIndex + 1].map((nodeInNextLayer, nodeInNextLayerIndex) => {
+          return {
+            weight: 1,
+            node: node,
+            nodeInNextLayer: nodeInNextLayer,
+            onClick: () => {},
+            greatestWeight: 10,
+            smallestWeight: 1,
+          } as NeuronConnectionProps;
+        });
+      })
+      .filter(nonNullable),
+  );
+};
+
+function ConnectionLines({ allNodes }: { allNodes: Array<Array<NeuronProps>> }): React.JSX.Element {
+  const [connectionLines, setConnectionLines] = useState(calculateConnectionLines(allNodes));
+
+  useEffect(() => {
+    setConnectionLines(calculateConnectionLines(allNodes));
+  }, [allNodes]);
+
   return (
     <>
-      {allNodes.map((layer, layerIndex) =>
+      {connectionLines.map((layer, layerIndex) =>
         layer.map((node, nodeIndex) => {
-          if (layerIndex === allNodes.length - 1) {
-            return;
-          }
-          return allNodes[layerIndex + 1].map((nodeInNextLayer, nodeInNextLayerIndex) => (
-            <Line
-              points={[node.xPos, node.yPos, nodeInNextLayer.xPos, nodeInNextLayer.yPos]}
-              stroke={'black'}
-              strokeWidth={4}
-              lineCap={'round'}
-              lineJoin={'round'}
+          return node.map((connection, connectionIndex) => (
+            <NeuronConnection
+              onClick={connection.onClick}
+              node={connection.node}
+              nodeInNextLayer={connection.nodeInNextLayer}
+              key={`${layerIndex}-${nodeIndex}-${connectionIndex}`}
+              weight={connection.weight}
+              greatestWeight={connection.greatestWeight}
+              smallestWeight={connection.smallestWeight}
             />
           ));
         }),

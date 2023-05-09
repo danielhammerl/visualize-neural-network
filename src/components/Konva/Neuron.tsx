@@ -2,11 +2,10 @@ import React from 'react';
 import { Circle } from 'react-konva';
 import { NeuronType } from '../../types/Neuron';
 
-interface NeuronProps {
+export interface NeuronProps {
   xPos: number;
   yPos: number;
   type: NeuronType;
-  radius: number;
 }
 
 const getColor = (type: NeuronType): string => {
@@ -31,6 +30,6 @@ export const getNeuronRadius = (numberOfMaxNodes: number): number => {
   return calculatedRadius;
 };
 
-export function Neuron({ xPos, yPos, type, radius }: NeuronProps) {
-  return <Circle x={xPos} y={yPos} radius={radius} fill={getColor(type)} />;
+export function Neuron({ xPos, yPos, type }: NeuronProps) {
+  return <Circle stroke={'black'} strokeWidth={1} x={xPos} y={yPos} radius={19} fill={getColor(type)} />;
 }

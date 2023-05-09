@@ -20,3 +20,7 @@ export const calculateXPosOfHiddenNeuron = (index: number, numberOfHiddenLayers:
 export const calculateYPosOfHiddenNeuron = (numberOfNodesinLayer: number, indexNode: number) => {
   return (CANVAS_VIRTUAL_HEIGHT / numberOfNodesinLayer) * indexNode + CANVAS_VIRTUAL_HEIGHT / numberOfNodesinLayer / 2;
 };
+
+export function nonNullable<T>(value: T): value is NonNullable<T> {
+  return value !== null && value !== undefined;
+}

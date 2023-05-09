@@ -6,7 +6,7 @@
     "module": "esnext",
     "moduleResolution": "Node",
     "target": "esnext",
-    "lib": ["es6", "dom"],
+    "lib": ["ES2021", "dom"],
     "allowJs": true
   },
   "include": [

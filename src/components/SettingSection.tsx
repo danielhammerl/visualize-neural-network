@@ -22,14 +22,14 @@ export function SettingSection() {
     >
       <div className="form" style={{ display: 'flex', flexDirection: 'column', width: '100%' }}>
         <TextField
-          InputProps={{ inputProps: { min: 1, onWheel: (event) => event.currentTarget.blur() } }}
+          InputProps={{ inputProps: { min: 1, max: 100, onWheel: (event) => event.currentTarget.blur() } }}
           {...register('numberOfInputNodes', {})}
           variant="outlined"
           type="number"
           label="Number of input nodes"
         />
         <TextField
-          InputProps={{ inputProps: { min: 1, onWheel: (event) => event.currentTarget.blur() } }}
+          InputProps={{ inputProps: { min: 1, max: 100, onWheel: (event) => event.currentTarget.blur() } }}
           {...register('numberOfOutputNodes', {})}
           variant="outlined"
           type="number"
@@ -42,7 +42,7 @@ export function SettingSection() {
           return (
             <div key={index} style={{ display: 'flex', width: '100%' }}>
               <TextField
-                InputProps={{ inputProps: { min: 1, onWheel: (event) => event.currentTarget.blur() } }}
+                InputProps={{ inputProps: { min: 1, max: 100, onWheel: (event) => event.currentTarget.blur() } }}
                 style={{ flex: '1' }}
                 min={1}
                 {...register(`hiddenLayers.${index}.numberOfNodes`, {})}

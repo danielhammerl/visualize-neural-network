@@ -1,62 +1,88 @@
 import React, { useState } from 'react';
-import { Line } from 'react-konva';
+import { Line, Rect, Text } from 'react-konva';
 import { NeuronProps } from './Neuron';
 
 export interface NeuronConnectionProps {
   node: NeuronProps;
   nodeInNextLayer: NeuronProps;
   weight: number;
-  greatestWeight: number;
-  smallestWeight: number;
+  greatestWeightAbsolute: number;
   onClick: () => void;
 }
+
+const RECT_WIDTH = 60;
+const RECT_HEIGHT = 30;
+
+const strokeWidthMax = 15;
+const strokeWidthMin = 1;
 
 export function NeuronConnection({
   node,
   nodeInNextLayer,
   weight,
-  greatestWeight,
+  greatestWeightAbsolute,
   onClick,
-  smallestWeight,
 }: NeuronConnectionProps) {
   const [hover, setHover] = useState<boolean>(false);
 
-  const strokeWidthMax = 10;
-  const strokeWidthMin = 1;
   const isPositive = weight > 0;
   const isNegative = weight < 0;
   const isNull = weight === 0;
 
-  const weightRatio = isPositive ? weight / greatestWeight : weight / smallestWeight;
-  let strokeWidth = isNull ? 1 : Math.abs(weightRatio) * strokeWidthMax;
-  strokeWidth = strokeWidth < strokeWidthMin ? strokeWidthMin : strokeWidth;
-  if (hover) {
-    strokeWidth = strokeWidthMax * 1.5;
-  }
+  console.log({ weight, greatestWeightAbsolute });
+  const weightRatio = Math.abs(weight) / greatestWeightAbsolute;
+  const strokeWidth = Math.max(isNull ? 1 : Math.abs(weightRatio) * strokeWidthMax, strokeWidthMin);
+  const color = isPositive ? 'blue' : isNegative ? 'red' : 'black';
 
   return (
-    <Line
-      onClick={onClick}
-      hitStrokeWidth={strokeWidthMax}
-      onMouseOver={(e) => {
-        const container = e.target?.getStage()?.container();
-        if (container) {
-          container.style.cursor = 'pointer';
-        }
-        setHover(true);
-      }}
-      onMouseLeave={(e) => {
-        const container = e.target?.getStage()?.container();
-        if (container) {
-          container.style.cursor = 'default';
-        }
-        setHover(false);
-      }}
-      points={[node.xPos, node.yPos, nodeInNextLayer.xPos, nodeInNextLayer.yPos]}
-      stroke={isPositive ? 'blue' : isNegative ? 'red' : 'black'}
-      strokeWidth={strokeWidth}
-      lineCap={'round'}
-      lineJoin={'round'}
-    />
+    <>
+      <Line
+        onClick={onClick}
+        shadowColor={color}
+        shadowBlur={10}
+        shadowOpacity={hover ? 1 : 0}
+        hitStrokeWidth={strokeWidthMax * 2}
+        onMouseOver={(e) => {
+          const container = e.target?.getStage()?.container();
+          if (container) {
+            container.style.cursor = 'pointer';
+          }
+          setHover(true);
+        }}
+        onMouseLeave={(e) => {
+          const container = e.target?.getStage()?.container();
+          if (container) {
+            container.style.cursor = 'default';
+          }
+          setHover(false);
+        }}
+        points={[node.xPos, node.yPos, nodeInNextLayer.xPos, nodeInNextLayer.yPos]}
+        stroke={color}
+        strokeWidth={strokeWidth}
+        lineCap={'round'}
+        lineJoin={'round'}
+      />
+      {hover && (
+        <>
+          <Rect
+            x={(nodeInNextLayer.xPos - node.xPos) / 2 + node.xPos}
+            y={(nodeInNextLayer.yPos - node.yPos) / 2 + node.yPos}
+            width={RECT_WIDTH}
+            height={RECT_HEIGHT}
+            fill="black"
+            alpha={0.75}
+          />
+          <Text
+            x={(nodeInNextLayer.xPos - node.xPos) / 2 + node.xPos}
+            y={(nodeInNextLayer.yPos - node.yPos) / 2 + node.yPos}
+            text={weight.toString()}
+            fontFamily="Calibri"
+            fontSize={30}
+            fill="white"
+            alpha={1}
+          />
+        </>
+      )}
+    </>
   );
 }

@@ -35,14 +35,12 @@ export function KonvaStageWrapper() {
   );
 }
 
-const calculateWeightExtremes = (
-  connectionLines: ConnectionLineDefinitions,
-): { greatestWeight: number; smallestWeight: number } => {
+const calculateWeightExtremes = (connectionLines: ConnectionLineDefinitions): number => {
   const nodesFlattened = connectionLines.flat().flat().flat();
   const greatestWeight = _.maxBy(nodesFlattened, 'weight')?.weight ?? 1;
   const smallestWeight = _.minBy(nodesFlattened, 'weight')?.weight ?? 1;
 
-  return { greatestWeight, smallestWeight };
+  return Math.max(Math.abs(greatestWeight), Math.abs(smallestWeight));
 };
 
 const calculateConnectionLines = (
@@ -57,14 +55,13 @@ const calculateConnectionLines = (
         }
         return allNodes[layerIndex + 1].map((nodeInNextLayer, nodeInNextLayerIndex) => {
           return {
-            weight: 1,
+            weight: 0,
             node: node,
             nodeInNextLayer: nodeInNextLayer,
             onClick: () => {
               onClickHandler(`${layerIndex}-${nodeIndex}-${nodeInNextLayerIndex}`);
             },
-            greatestWeight: 10,
-            smallestWeight: -10,
+            greatestWeightAbsolute: 10,
           } as NeuronConnectionProps;
         });
       })
@@ -166,18 +163,19 @@ function KonvaStage({ boundaries }: { boundaries: DOMRect | undefined }) {
                 const lineToEdit = getPartsOfId(connectionLineToEdit);
                 let newConnectionLines = _.cloneDeep(connectionLines);
                 newConnectionLines[lineToEdit[0]][lineToEdit[1]][lineToEdit[2]].weight = Number.parseFloat(value);
-                const { greatestWeight, smallestWeight } = calculateWeightExtremes(newConnectionLines);
+                const greatestWeightAbsolute = calculateWeightExtremes(newConnectionLines);
+                console.log(greatestWeightAbsolute);
                 newConnectionLines = newConnectionLines.map((item) =>
                   item.map((item2) =>
                     item2.map((item3) => {
                       return {
                         ...item3,
-                        greatestWeight: greatestWeight >= 10 ? greatestWeight : 10,
-                        smallestWeight: smallestWeight <= -10 ? smallestWeight : -10,
+                        greatestWeightAbsolute: Math.max(greatestWeightAbsolute, 10),
                       };
                     }),
                   ),
                 );
+                console.log({ newConnectionLines });
                 setConnectionLines(newConnectionLines);
                 setConnectionLineToEdit('');
               }}
@@ -220,8 +218,7 @@ function ConnectionLines({ connectionLines }: { connectionLines: ConnectionLineD
               nodeInNextLayer={connection.nodeInNextLayer}
               key={`${layerIndex}-${nodeIndex}-${connectionIndex}`}
               weight={connection.weight}
-              greatestWeight={connection.greatestWeight}
-              smallestWeight={connection.smallestWeight}
+              greatestWeightAbsolute={connection.greatestWeightAbsolute}
             />
           ));
         }),

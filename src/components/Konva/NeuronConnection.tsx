@@ -10,7 +10,7 @@ export interface NeuronConnectionProps {
   onClick: () => void;
 }
 
-const RECT_WIDTH = 60;
+const RECT_WIDTH = 20;
 const RECT_HEIGHT = 30;
 
 const strokeWidthMax = 15;
@@ -65,9 +65,9 @@ export function NeuronConnection({
       {hover && (
         <>
           <Rect
-            x={(nodeInNextLayer.xPos - node.xPos) / 2 + node.xPos}
+            x={(nodeInNextLayer.xPos - node.xPos) / 2 + node.xPos - 10}
             y={(nodeInNextLayer.yPos - node.yPos) / 2 + node.yPos}
-            width={RECT_WIDTH}
+            width={weight.toString().length * RECT_WIDTH + 10}
             height={RECT_HEIGHT}
             fill="black"
             alpha={0.75}

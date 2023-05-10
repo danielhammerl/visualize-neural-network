@@ -1,4 +1,4 @@
-import React, { useEffect, useLayoutEffect, useRef, useState } from 'react';
+import React, { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { Layer, Stage } from 'react-konva';
 import { useFormContext } from 'react-hook-form';
 import { Settings } from '../types/Settings';
@@ -18,6 +18,7 @@ import { NeuronType } from '../types/Neuron';
 import { NeuronConnection, NeuronConnectionProps } from './Konva/NeuronConnection';
 
 const func = _.throttle((set, ref) => set(ref?.current?.getBoundingClientRect()), 500);
+type ConnectionLineDefinitions = Array<Array<Array<NeuronConnectionProps>>>;
 export function KonvaStageWrapper() {
   const ref = useRef<HTMLDivElement>(null);
   const [boundaries, setBoundaries] = useState<DOMRect | undefined>(undefined);
@@ -33,10 +34,59 @@ export function KonvaStageWrapper() {
   );
 }
 
+const calculateConnectionLines = (allNodes: Array<Array<NeuronProps>>): ConnectionLineDefinitions => {
+  return allNodes.map((layer, layerIndex) =>
+    layer
+      .map((node) => {
+        if (layerIndex === allNodes.length - 1) {
+          return;
+        }
+        return allNodes[layerIndex + 1].map((nodeInNextLayer) => {
+          return {
+            weight: 1,
+            node: node,
+            nodeInNextLayer: nodeInNextLayer,
+            onClick: () => {},
+            greatestWeight: 10,
+            smallestWeight: 1,
+          } as NeuronConnectionProps;
+        });
+      })
+      .filter(nonNullable),
+  );
+};
+
 function KonvaStage({ boundaries }: { boundaries: DOMRect | undefined }) {
   const formData = useFormContext<Settings>().watch();
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const stageRef = useRef<Konva.Stage>(null);
+  const allNodes: Array<Array<NeuronProps>> = useMemo(
+    () => [
+      _.times(formData.numberOfInputNodes, (index) => ({
+        xPos: INPUT_NODE_X_POS,
+        yPos: calculateYPosOfInputNeuron(index, formData.numberOfInputNodes),
+        type: 'input',
+      })),
+      ...formData.hiddenLayers.map((layer, index, hiddenLayers) =>
+        _.times(layer.numberOfNodes, (indexNode) => ({
+          xPos: calculateXPosOfHiddenNeuron(index, hiddenLayers.length),
+          yPos: calculateYPosOfHiddenNeuron(layer.numberOfNodes, indexNode),
+          type: 'hidden' as NeuronType,
+        })),
+      ),
+      _.times(formData.numberOfOutputNodes, (index) => ({
+        type: 'output',
+        xPos: OUTPUT_NODE_X_POS,
+        yPos: calculateYPosOfOutputNeuron(index, formData.numberOfOutputNodes),
+      })),
+    ],
+    [formData.hiddenLayers, formData.numberOfInputNodes, formData.numberOfOutputNodes],
+  );
+
+  const [connectionLines, setConnectionLines] = useState(calculateConnectionLines(allNodes));
+  useEffect(() => {
+    setConnectionLines(calculateConnectionLines(allNodes));
+  }, [allNodes]);
 
   const scale = Math.min(
     (boundaries?.width ?? CANVAS_VIRTUAL_WIDTH) / CANVAS_VIRTUAL_WIDTH,
@@ -65,26 +115,6 @@ function KonvaStage({ boundaries }: { boundaries: DOMRect | undefined }) {
     };*/
   });
 
-  const allNodes: Array<Array<NeuronProps>> = [
-    _.times(formData.numberOfInputNodes, (index) => ({
-      xPos: INPUT_NODE_X_POS,
-      yPos: calculateYPosOfInputNeuron(index, formData.numberOfInputNodes),
-      type: 'input',
-    })),
-    ...formData.hiddenLayers.map((layer, index, hiddenLayers) =>
-      _.times(layer.numberOfNodes, (indexNode) => ({
-        xPos: calculateXPosOfHiddenNeuron(index, hiddenLayers.length),
-        yPos: calculateYPosOfHiddenNeuron(layer.numberOfNodes, indexNode),
-        type: 'hidden' as NeuronType,
-      })),
-    ),
-    _.times(formData.numberOfOutputNodes, (index) => ({
-      type: 'output',
-      xPos: OUTPUT_NODE_X_POS,
-      yPos: calculateYPosOfOutputNeuron(index, formData.numberOfOutputNodes),
-    })),
-  ];
-
   return (
     <div id="scroll-container" ref={scrollContainerRef}>
       <Stage
@@ -94,7 +124,7 @@ function KonvaStage({ boundaries }: { boundaries: DOMRect | undefined }) {
         height={CANVAS_VIRTUAL_HEIGHT * scale}
       >
         <Layer>
-          <ConnectionLines allNodes={allNodes} />
+          <ConnectionLines connectionLines={connectionLines} />
           {allNodes.map((layer, layerIndex) =>
             layer.map((node, nodeIndex) => (
               <Neuron key={`${layerIndex}-${nodeIndex}`} xPos={node.xPos} yPos={node.yPos} type={node.type} />
@@ -106,35 +136,7 @@ function KonvaStage({ boundaries }: { boundaries: DOMRect | undefined }) {
   );
 }
 
-const calculateConnectionLines = (allNodes: Array<Array<NeuronProps>>) => {
-  return allNodes.map((layer, layerIndex) =>
-    layer
-      .map((node, nodeIndex) => {
-        if (layerIndex === allNodes.length - 1) {
-          return;
-        }
-        return allNodes[layerIndex + 1].map((nodeInNextLayer, nodeInNextLayerIndex) => {
-          return {
-            weight: 1,
-            node: node,
-            nodeInNextLayer: nodeInNextLayer,
-            onClick: () => {},
-            greatestWeight: 10,
-            smallestWeight: 1,
-          } as NeuronConnectionProps;
-        });
-      })
-      .filter(nonNullable),
-  );
-};
-
-function ConnectionLines({ allNodes }: { allNodes: Array<Array<NeuronProps>> }): React.JSX.Element {
-  const [connectionLines, setConnectionLines] = useState(calculateConnectionLines(allNodes));
-
-  useEffect(() => {
-    setConnectionLines(calculateConnectionLines(allNodes));
-  }, [allNodes]);
-
+function ConnectionLines({ connectionLines }: { connectionLines: ConnectionLineDefinitions }): React.JSX.Element {
   return (
     <>
       {connectionLines.map((layer, layerIndex) =>

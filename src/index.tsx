@@ -9,6 +9,9 @@ const Shell = () => {
 };
 
 window.onload = () => {
-  const root = ReactDOM.createRoot(document.getElementById('root')!);
-  root.render(<Shell />);
+  const element = document.getElementById('root');
+  if (element) {
+    const root = ReactDOM.createRoot(element);
+    root.render(<Shell />);
+  }
 };

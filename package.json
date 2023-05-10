@@ -3,7 +3,11 @@
     "react",
     "typescript"
   ],
+  "homepage": "https://danielhammerl.github.io/visualize-neural-network",
   "scripts": {
+    "build": "dhammerl-cli build",
+    "predeploy": "npm run build",
+    "deploy": "gh-pages -d build",
     "sandbox": "dhammerl-cli sandbox",
     "lint": "eslint src/"
   },

@@ -164,7 +164,6 @@ function KonvaStage({ boundaries }: { boundaries: DOMRect | undefined }) {
                 let newConnectionLines = _.cloneDeep(connectionLines);
                 newConnectionLines[lineToEdit[0]][lineToEdit[1]][lineToEdit[2]].weight = Number.parseFloat(value);
                 const greatestWeightAbsolute = calculateWeightExtremes(newConnectionLines);
-                console.log(greatestWeightAbsolute);
                 newConnectionLines = newConnectionLines.map((item) =>
                   item.map((item2) =>
                     item2.map((item3) => {
@@ -175,7 +174,6 @@ function KonvaStage({ boundaries }: { boundaries: DOMRect | undefined }) {
                     }),
                   ),
                 );
-                console.log({ newConnectionLines });
                 setConnectionLines(newConnectionLines);
                 setConnectionLineToEdit('');
               }}

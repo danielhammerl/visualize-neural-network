@@ -80,7 +80,7 @@ function KonvaStage({ boundaries }: { boundaries: DOMRect | undefined }) {
         yPos: calculateYPosOfOutputNeuron(index, formData.numberOfOutputNodes),
       })),
     ],
-    [formData.hiddenLayers, formData.numberOfInputNodes, formData.numberOfOutputNodes],
+    [formData],
   );
 
   const [connectionLines, setConnectionLines] = useState(calculateConnectionLines(allNodes));
